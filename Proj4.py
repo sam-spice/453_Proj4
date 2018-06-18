@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import re
 import glob
 import decimal
@@ -191,10 +192,11 @@ class Bayes_Class:
         return class_prob
 
 def main():
+    print('Starting')
     feature_size = int(sys.argv[1])
     trainer_tester = BayesTesterTrainer()
+    print('Done Initialing')
     print('Feature Size: ' + str(feature_size))
-
     training_start = datetime.datetime.now()
     trainer_tester.train(feature_size)
     training_end = datetime.datetime.now()
@@ -208,7 +210,7 @@ def main():
 
     testing_delta = testing_end - testing_start
     print('Testing Time: ' + str(testing_delta.seconds) + ' seconds')
-    print('Accuracy: ' + str(accuracy))
+    print('Accuracy: ' + str(accuracy) + '\n\n')
 
 
 
