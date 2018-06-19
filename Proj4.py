@@ -18,6 +18,7 @@ class Bayes_Structure:
         self.word_in_doc_counts = dict()
         self.feature_list = None
 
+    # get stopwords
     def get_stopwords(self):
         stopfile = open('stopwords.txt')
         stopwords = stopfile.read()
@@ -28,6 +29,7 @@ class Bayes_Structure:
         stopset.update(stopwords)
         return stopwords
 
+    #train a class or the given documents
     def train(self, file, file_class):
         stripped = self.strip_file(file)
         to_train = self.classes.get(file_class, Bayes_Class())
@@ -37,6 +39,7 @@ class Bayes_Structure:
         self.classes[file_class] = to_train
         self.vocabulary.update(stripped)
 
+    # strip file and just pull out pertinent info
     def strip_file(self, file_to_strip):
         file = open(file_to_strip, 'r', encoding='iso-8859-1')
         content = file.read()
@@ -62,6 +65,7 @@ class Bayes_Structure:
                 to_return.append(word)
         return to_return
 
+    # train a class with the training set for this document
     def train_class(self, file_list ,class_to_train):
         folder_path = 'Classes/' + class_to_train + '/*'
         self.total_docs += len(file_list)
@@ -69,6 +73,7 @@ class Bayes_Structure:
             self.train(file, class_to_train)
             self.class_count[class_to_train] = self.class_count.get(class_to_train, 0) + 1
 
+    # calculate information gain
     def information_gain(self, word):
         segment1 = 0
         segment2 = 0
@@ -92,6 +97,7 @@ class Bayes_Structure:
         ig = - segment1 + (p_w * segment2) + (p_not_w * segment3)
         return ig
 
+    # get the best features for selection
     def feature_selection(self, m):
         feature_list = list()
         for word in self.vocabulary:
@@ -108,6 +114,7 @@ class Bayes_Structure:
                 feature_words.append(sorted_features[i][0])
         self.feature_list = feature_words
 
+    # find the class that the document best belongs in
     def test(self, doc_to_test):
         tuple_list = list()
         doc_words = self.strip_file(doc_to_test)
@@ -124,6 +131,7 @@ class BayesTesterTrainer:
         self.Bayes_Structure = Bayes_Structure()
         self.testing_set = dict()
 
+    # train the documents based on the classes
     def train(self, feature_number):
         classes = glob.glob('Classes/*')
         for entry in classes:
@@ -135,7 +143,7 @@ class BayesTesterTrainer:
         if 0 < feature_number < len(self.Bayes_Structure.vocabulary):
             self.Bayes_Structure.feature_selection(feature_number)
 
-
+    # scrambles the file list so the test set and training set are randomly chosen
     def scramble_class(self, entry):
         files = glob.glob(entry + '/*')
         files = sorted(files, key = lambda x: random.random())
@@ -147,7 +155,7 @@ class BayesTesterTrainer:
     def get_struct(self):
         return self.Bayes_Structure
 
-
+    # classifies the docs in the test set
     def test(self):
         numerator = 0
         denominator = 0
@@ -160,13 +168,16 @@ class BayesTesterTrainer:
         accuracy = numerator / denominator
         return accuracy
 
+# class that stores the data related to
 class Bayes_Class:
+    # initialize the class
     def __init__(self):
         self.word_counts = dict()
         self.total_words = 0
         self.num_docs = 0
         self.word_in_docs = dict()
 
+    # train this class with the new document
     def new_training_document(self, doc_words):
         self.num_docs += 1
         unique_words = set()
@@ -178,6 +189,7 @@ class Bayes_Class:
             self.word_in_docs[unique] = self.word_in_docs.get(unique, 0) + 1
         return unique_words
 
+    # returns the probability that document is in this class
     def doc_probability(self, doc_to_test, vocabulary_size, feature_list):
         class_prob = decimal.Decimal(1)
         decimal.getcontext().prec = 800
@@ -191,25 +203,28 @@ class Bayes_Class:
             class_prob *= word_prob
         return class_prob
 
+# runs tests
 def main():
     print('Starting')
     feature_size = int(sys.argv[1])
     trainer_tester = BayesTesterTrainer()
     print('Done Initialing')
-    print('Feature Size: ' + str(feature_size))
     training_start = datetime.datetime.now()
     trainer_tester.train(feature_size)
     training_end = datetime.datetime.now()
 
     training_delta = training_end - training_start
-    print('Training Time: ' + str(training_delta.seconds) + ' seconds')
 
     testing_start = datetime.datetime.now()
     accuracy = trainer_tester.test()
     testing_end = datetime.datetime.now()
 
     testing_delta = testing_end - testing_start
+    print('Feature Size: ' + str(feature_size))
+
+    print('Training Time: ' + str(training_delta.seconds) + ' seconds')
     print('Testing Time: ' + str(testing_delta.seconds) + ' seconds')
+
     print('Accuracy: ' + str(accuracy) + '\n\n')
 
 
